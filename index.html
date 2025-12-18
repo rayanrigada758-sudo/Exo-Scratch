@@ -35,5 +35,176 @@
 
         h1 { color: #333; margin-bottom: 0.5rem; }
         p { color: #666; margin-bottom: 2rem; }
-/html
-       
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn:hover { background-color: #4338ca; }
+
+        input[type="text"] {
+            width: 80%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .hidden { display: none; }
+        
+        #feedback-msg {
+            font-weight: bold;
+            margin-top: 10px;
+            min-height: 1.5rem;
+        }
+        .text-success { color: var(--success); }
+        .text-error { color: var(--error); }
+        
+        .progress {
+            font-size: 0.8rem;
+            color: #999;
+            margin-bottom: 1rem;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <div id="start-screen">
+            <h1>Mode Entraînement</h1>
+            <p>Prêt à tester tes connaissances ?</p>
+            <button class="btn" onclick="startTraining()">Démarrer</button>
+        </div>
+
+        <div id="game-screen" class="hidden">
+            <span class="progress" id="progress-text">Question 1/X</span>
+            <h2 id="question-text">L'énoncé s'affichera ici</h2>
+            
+            <input type="text" id="user-answer" placeholder="Ta réponse..." autocomplete="off">
+            <br>
+            <button class="btn" onclick="checkAnswer()">Valider</button>
+            
+            <div id="feedback-msg"></div>
+            <button class="btn hidden" id="next-btn" onclick="nextQuestion()" style="margin-top:15px; background-color:#333;">Question suivante</button>
+        </div>
+
+        <div id="end-screen" class="hidden">
+            <h1>Terminé !</h1>
+            <p>Ton score final : <span id="final-score" style="font-weight:bold; font-size:1.5rem; color:var(--primary)"></span></p>
+            <button class="btn" onclick="location.reload()">Recommencer</button>
+        </div>
+    </div>
+
+    <script>
+        /* --- LOGIQUE (JavaScript) --- */
+        
+        // 1. Tes Énoncés et Réponses (Tu peux modifier ici)
+        const questions = [
+            { question: "Quelle est la capitale de la France ?", reponse: "Paris" },
+            { question: "Combien font 5 x 6 ?", reponse: "30" },
+            { question: "Quelle est la couleur du cheval blanc d'Henri IV ?", reponse: "Blanc" },
+            { question: "En quelle année a eu lieu la Révolution française ?", reponse: "1789" },
+            { question: "Quel est le symbole chimique de l'eau ?", reponse: "H2O" }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+
+        // Éléments du DOM
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const endScreen = document.getElementById('end-screen');
+        const questionText = document.getElementById('question-text');
+        const inputField = document.getElementById('user-answer');
+        const feedbackMsg = document.getElementById('feedback-msg');
+        const nextBtn = document.getElementById('next-btn');
+        const progressText = document.getElementById('progress-text');
+
+        // Fonction pour démarrer
+        function startTraining() {
+            startScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            showQuestion();
+        }
+
+        // Afficher la question actuelle
+        function showQuestion() {
+            resetState();
+            let currentQuestion = questions[currentQuestionIndex];
+            questionText.innerText = currentQuestion.question;
+            progressText.innerText = `Question ${currentQuestionIndex + 1} / ${questions.length}`;
+        }
+
+        // Réinitialiser l'interface pour la nouvelle question
+        function resetState() {
+            inputField.value = '';
+            inputField.disabled = false;
+            feedbackMsg.innerText = '';
+            feedbackMsg.className = '';
+            nextBtn.classList.add('hidden');
+            inputField.focus();
+        }
+
+        // Vérifier la réponse
+        function checkAnswer() {
+            // Empêcher de valider vide ou deux fois
+            if(inputField.disabled || inputField.value.trim() === "") return;
+
+            const userAnswer = inputField.value.trim().toLowerCase();
+            const correctAnswer = questions[currentQuestionIndex].reponse.toLowerCase();
+
+            inputField.disabled = true; // Bloquer le champ
+
+            if (userAnswer === correctAnswer) {
+                feedbackMsg.innerText = "Correct ! Bravo.";
+                feedbackMsg.classList.add("text-success");
+                score++;
+            } else {
+                feedbackMsg.innerText = `Faux ! La bonne réponse était : ${questions[currentQuestionIndex].reponse}`;
+                feedbackMsg.classList.add("text-error");
+            }
+
+            // Afficher le bouton suivant
+            nextBtn.classList.remove('hidden');
+        }
+
+        // Passer à la question suivante
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                showQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        // Afficher les résultats
+        function showResults() {
+            gameScreen.classList.add('hidden');
+            endScreen.classList.remove('hidden');
+            document.getElementById('final-score').innerText = `${score} / ${questions.length}`;
+        }
+
+        // Permettre de valider avec la touche "Entrée"
+        inputField.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                checkAnswer();
+            }
+        });
+
+    </script>
+</body>
+</html>
